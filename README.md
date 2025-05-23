@@ -8,13 +8,13 @@ Perfect for lightweight systems, educational projects, and CPU-only simulations.
 
 ### ✨ Key Features
 
-  ✅ Access ZED camera frames via ZED Open Capture API
+  - Access ZED camera frames via ZED Open Capture API
 
-  🎨 Perform color-based object detection using HSV filtering
+  - Perform color-based object detection using HSV filtering
 
-  📏 Estimate depth at the center of detected object
+  - Estimate depth at the center of detected object
 
-  💻 Fully optimized for CPU-only execution
+  - Fully optimized for CPU-only execution
 
 ### ⚙️ Tech Stack
 
