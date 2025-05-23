@@ -48,3 +48,9 @@ Ensure the following dependencies are installed:
 Ensure your ZED camera is connected and accessible, then run:
 
     ./testing
+
+### Result
+
+![](asset/output.png)
+
+![](asset/cpu-perform.png)
