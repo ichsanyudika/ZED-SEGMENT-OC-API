@@ -3,10 +3,8 @@
 #include <iomanip>
 #include <chrono>
 #include <thread>
-
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/ocl.hpp>
-
 #include "videocapture.hpp"
 #include "calibration.hpp"
 #include "stereo.hpp"
@@ -24,12 +22,11 @@ int main(int argc, char *argv[]) {
 
     cv::ocl::setUseOpenCL(false);
 
-    sl_oc::VERBOSITY verbose = sl_oc::VERBOSITY::INFO;
-
+    // Initialize video capture
     sl_oc::video::VideoParams params;
     params.res = sl_oc::video::RESOLUTION::VGA;
     params.fps = sl_oc::video::FPS::FPS_30;
-    params.verbose = verbose;
+    params.verbose = sl_oc::VERBOSITY::INFO;
 
     sl_oc::video::VideoCapture cap(params);
     if (!cap.initializeVideo(-1)) {
@@ -40,18 +37,17 @@ int main(int argc, char *argv[]) {
     int sn = cap.getSerialNumber();
     std::cout << "Connected to camera sn: " << sn << std::endl;
 
+    // Load calibration file
     std::string calibration_file;
     if (!sl_oc::tools::downloadCalibrationFile(sn, calibration_file)) {
         std::cerr << "Failed to download calibration file." << std::endl;
         return EXIT_FAILURE;
     }
 
-    std::cout << "Calibration file loaded: " << calibration_file << std::endl;
-
     int w, h;
     cap.getFrameSize(w, h);
 
-    // Calibration and remap maps
+    // Initialize calibration and remap maps
     cv::Mat map_left_x, map_left_y, map_right_x, map_right_y;
     cv::Mat cameraMatrix_left, cameraMatrix_right;
     double baseline = 0;
@@ -62,16 +58,6 @@ int main(int argc, char *argv[]) {
                                   &baseline);
 
     double fx = cameraMatrix_left.at<double>(0, 0);
-    double fy = cameraMatrix_left.at<double>(1, 1);
-    double cx = cameraMatrix_left.at<double>(0, 2);
-    double cy = cameraMatrix_left.at<double>(1, 2);
-
-    std::cout << "Camera Matrix L: \n" << cameraMatrix_left << std::endl;
-    std::cout << "Baseline: " << baseline << " mm" << std::endl;
-
-    // Variabel untuk frame dan hasil olahan
-    cv::Mat frameYUV, frameBGR, left_raw, right_raw, left_rect, right_rect;
-    cv::Mat left_disp, left_disp_float;
 
     // Stereo matcher setup
     sl_oc::tools::StereoSgbmPar stereoPar;
@@ -82,22 +68,15 @@ int main(int argc, char *argv[]) {
         stereoPar.numDisparities,
         stereoPar.blockSize);
 
-    // Set parameter lain untuk StereoSGBM sesuai konfigurasi
+    // Configure StereoSGBM parameters
     left_matcher->setMinDisparity(stereoPar.minDisparity);
     left_matcher->setNumDisparities(stereoPar.numDisparities);
     left_matcher->setBlockSize(stereoPar.blockSize);
     left_matcher->setP1(stereoPar.P1);
     left_matcher->setP2(stereoPar.P2);
-    left_matcher->setDisp12MaxDiff(stereoPar.disp12MaxDiff);
-    left_matcher->setMode(stereoPar.mode);
-    left_matcher->setPreFilterCap(stereoPar.preFilterCap);
-    left_matcher->setUniquenessRatio(stereoPar.uniquenessRatio);
-    left_matcher->setSpeckleWindowSize(stereoPar.speckleWindowSize);
-    left_matcher->setSpeckleRange(stereoPar.speckleRange);
 
     std::cout << "Starting real-time depth measurement...\nPress 'q' to exit" << std::endl;
 
-    // HSV Trackbars
     cv::namedWindow("HSV Trackbars", cv::WINDOW_AUTOSIZE);
     cv::createTrackbar("H Min", "HSV Trackbars", &h_min, 179, on_trackbar);
     cv::createTrackbar("H Max", "HSV Trackbars", &h_max, 179, on_trackbar);
@@ -118,7 +97,7 @@ int main(int argc, char *argv[]) {
         last_ts = frame.timestamp;
         frame_count++;
 
-        // Hitung FPS
+        // Calculate FPS
         auto t_now = std::chrono::high_resolution_clock::now();
         double elapsed = std::chrono::duration<double>(t_now - t_start).count();
         if (elapsed > 1.0) {
@@ -127,50 +106,50 @@ int main(int argc, char *argv[]) {
             t_start = t_now;
         }
 
-        // Konversi ke BGR
-        frameYUV = cv::Mat(frame.height, frame.width, CV_8UC2, frame.data).clone();
+        // Convert to BGR
+        cv::Mat frameYUV = cv::Mat(frame.height, frame.width, CV_8UC2, frame.data).clone();
+        cv::Mat frameBGR;
         cv::cvtColor(frameYUV, frameBGR, cv::COLOR_YUV2BGR_YUYV);
 
-        // Potong frame menjadi dua bagian: kiri dan kanan (kamera stereo)
-        right_raw = frameBGR(cv::Rect(frameBGR.cols / 2, 0, frameBGR.cols / 2, frameBGR.rows)).clone();
-        left_raw = frameBGR(cv::Rect(0, 0, frameBGR.cols / 2, frameBGR.rows)).clone();
+        // Split frame into left and right (stereo camera)
+        cv::Mat left_raw = frameBGR(cv::Rect(0, 0, frameBGR.cols / 2, frameBGR.rows)).clone();
+        cv::Mat right_raw = frameBGR(cv::Rect(frameBGR.cols / 2, 0, frameBGR.cols / 2, frameBGR.rows)).clone();
 
-        // Remap (Rectification)
+        // Rectification
+        cv::Mat left_rect, right_rect;
         cv::remap(left_raw, left_rect, map_left_x, map_left_y, cv::INTER_LINEAR);
         cv::remap(right_raw, right_rect, map_right_x, map_right_y, cv::INTER_LINEAR);
 
-        // Hitung disparity
+        // Compute disparity
+        cv::Mat left_disp, left_disp_float;
         left_matcher->compute(left_rect, right_rect, left_disp);
         left_disp.convertTo(left_disp_float, CV_32F, 1.0 / 16.0);
 
-        // Buat depth map
+        // Create depth map
         cv::Mat depth_map = cv::Mat(left_disp_float.size(), CV_32F, cv::Scalar(0));
         double fx_baseline = fx * baseline;
 
-        // Gunakan kamera kiri untuk segmentasi HSV
+        // HSV segmentation
         cv::Mat hsv, mask;
         cv::cvtColor(left_rect, hsv, cv::COLOR_BGR2HSV);
         cv::inRange(hsv, cv::Scalar(h_min, s_min, v_min), cv::Scalar(h_max, s_max, v_max), mask);
 
-        // Cari kontur objek
+        // Find contours
         std::vector<std::vector<cv::Point>> contours;
         cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-        // Median blur untuk mengurangi noise pada depth map
-        cv::medianBlur(depth_map, depth_map, 5);
-
-        // Tentukan ROI (region of interest) di tengah frame untuk hitung depth rata-rata
+        // Calculate average depth in the center region
         int center_x = depth_map.cols / 2;
         int center_y = depth_map.rows / 2;
         cv::Rect roi(center_x - 3, center_y - 3, 7, 7);
         roi &= cv::Rect(0, 0, depth_map.cols, depth_map.rows);
 
-        // Hitung rata-rata depth
         cv::Mat center_region = depth_map(roi);
         cv::Scalar avg_depth = cv::mean(center_region);
         float center_depth = static_cast<float>(avg_depth[0]);
         if (center_depth <= 0 || center_depth > 10000) center_depth = 0;
 
+        // Find largest contour
         double max_area = 0;
         std::vector<cv::Point> max_contour;
         for (const auto& c : contours) {
@@ -181,6 +160,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        // Calculate depth of the largest contour
         float depth_val = -1;
         if (!max_contour.empty() && max_area > 30) {
             cv::Moments M = cv::moments(max_contour);
@@ -197,13 +177,11 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // Tampilkan FPS di frame kiri
         std::stringstream fps_ss;
         fps_ss << "FPS: " << std::fixed << std::setprecision(1) << fps;
         cv::putText(left_rect, fps_ss.str(), cv::Point(20, 30),
                     cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
 
-        // Tampilkan hasil kamera kiri dan mask
         cv::imshow("Pov Zed", left_rect);
         cv::imshow("Pov Mask", mask);
 
