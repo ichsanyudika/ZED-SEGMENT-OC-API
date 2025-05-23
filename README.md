@@ -49,7 +49,7 @@ Ensure your ZED camera is connected and accessible, then run:
 
     ./testing
 
-### Result
+### 🖼️ Example Result
 
 ![](asset/output.png)
 
