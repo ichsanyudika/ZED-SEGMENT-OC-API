@@ -34,13 +34,13 @@ Install dependencies:
 
   - CMake 3.10+
 
-    Clone and build the project:
+Clone and build the project:
 
-      git clone https://github.com/your-username/zed-open-segment-depth.git
-      cd zed-open-segment-depth
-      mkdir build && cd build
-      cmake ..
-      make
+    git clone https://github.com/ichsanyudika/ZED-SEGMENT-OC-API.git
+    cd ZED-SEGMENT-OC-API
+    mkdir build && cd build
+    cmake ..
+    make
 
 ### How to Run:
 
