@@ -50,7 +50,7 @@ Ensure the following dependencies are installed:
 
 Ensure your ZED camera is connected and accessible, then run:
 
-    ./testing
+    ./testingku
 
 ### 🖼️ Example Result
 
