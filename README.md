@@ -1,6 +1,7 @@
 ## ZED Camera Open Capture (CPU Only)
 
 Fully running on CPU only – no GPU or CUDA required. Ideal for lightweight systems, educational purposes, and CPU-only simulations.
+sources : https://github.com/stereolabs/zed-open-capture
 
 ### Key Features:
 
