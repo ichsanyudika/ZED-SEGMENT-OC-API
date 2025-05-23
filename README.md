@@ -1,41 +1,41 @@
-## ZED Camera Open Capture (CPU Only)
+## 🎥 ZED Camera Open Capture (CPU Only)
 
-Fully running on CPU only – no GPU or CUDA required. Ideal for lightweight systems, educational purposes, and CPU-only simulations.
-sources : https://github.com/stereolabs/zed-open-capture
+Real-time color object detection and depth estimation — all on CPU!
+No GPU, no CUDA — just pure processing with OpenCV and ZED Open Capture.
+Perfect for lightweight systems, educational projects, and CPU-only simulations.
 
-### Key Features:
+🔗 Source: ZED Open Capture
 
-  - Access ZED camera frames using the ZED Open Capture API
+### ✨ Key Features
 
-  - Detect objects based on color (e.g., red ball detection using HSV filtering)
+✅ Access ZED camera frames via ZED Open Capture API
+🎨 Perform color-based object detection using HSV filtering
+📏 Estimate depth at the center of detected object
+💻 Fully optimized for CPU-only execution
 
-  - Estimate object distance by sampling depth at the segmented region's center
+### ⚙️ Tech Stack
 
-  - Lightweight and GPU-free: all processing runs on CPU
-
-### Stack:
-
-  - Camera: ZED (tested with ZED 2)
+  - Camera: ZED (tested on ZED 2)
 
   - SDK: ZED Open Capture
 
-  - Image Processing: OpenCV (for segmentation and drawing)
+  - Image Processing: OpenCV (segmentation, contour, drawing)
 
-  - Language: C++
+  - Programming Language: C++
 
-  - Execution: CPU only
+  - Execution Mode: CPU only (no CUDA)
 
-### How to Build:
+### 🔧 Prerequisites
 
-Install dependencies:
+Ensure the following dependencies are installed:
 
-  - OpenCV 4.x or newer
+  - OpenCV (version 4.x or newer)
 
   - ZED Open Capture SDK
 
-  - CMake 3.10+
+  - CMake (version 3.10 or newer)
 
-Clone and build the project:
+### 📦 Clone & Build
 
     git clone https://github.com/ichsanyudika/ZED-SEGMENT-OC-API.git
     cd ZED-SEGMENT-OC-API
@@ -43,11 +43,8 @@ Clone and build the project:
     cmake ..
     make
 
-### How to Run:
+### ▶️ Run the Program
 
-Make sure the ZED camera is connected and recognized.
+Ensure your ZED camera is connected and accessible, then run:
 
     ./testing
-
-### Result
-
