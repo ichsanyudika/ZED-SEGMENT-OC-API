@@ -4,7 +4,7 @@ Real-time color object detection and depth estimation — all on CPU!
 No GPU, no CUDA — just pure processing with OpenCV and ZED Open Capture.
 Perfect for lightweight systems, educational projects, and CPU-only simulations.
 
-🔗 Source: ZED Open Capture
+🔗 Source: https://github.com/stereolabs/zed-open-capture
 
 ### ✨ Key Features
 
