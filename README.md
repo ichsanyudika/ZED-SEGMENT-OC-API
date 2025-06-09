@@ -18,8 +18,8 @@
 
 ### Build & Run
 
-    git clone https://github.com/ichsanyudika/ZED-SEGMENT-OC-API.git
-    cd ZED-SEGMENT-OC-API
+    git clone https://github.com/ichsanyudika/zed-segment-oc-api.git
+    cd zed-segment-oc
     mkdir build && cd build
     cmake ..
     make
