@@ -4,7 +4,7 @@
 
 - Color-based object detection with HSV filtering
 
-- Depth estimation at object center
+- Depth estimated
 
 - CPU-only processing
 
